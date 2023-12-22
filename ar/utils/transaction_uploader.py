@@ -13,20 +13,24 @@
 # PyArweave. If not, see <https://www.gnu.org/licenses/>.
 
 import json
-import arrow
+import logging
 import random
 import time
+
+import arrow
 import requests
-import logging
-from jose.utils import base64url_encode, base64url_decode
-from ..transaction import Transaction
-from ..peer import Peer
+from jose.utils import base64url_decode, base64url_encode
+
 from .. import DEFAULT_API_URL
-from . import *
-from .merkle import validate_path, CHUNK_SIZE
+from ..peer import Peer
+from ..transaction import Transaction
+from ..utils.serialization import b64dec
+
+#from . import *
+from .merkle import CHUNK_SIZE, validate_path
 
 try:
-    from signal import signal, SIGPIPE, SIG_DFL
+    from signal import SIG_DFL, SIGPIPE, signal
     signal(SIGPIPE, SIG_DFL)
 except ImportError:  # If SIGPIPE is not available (win32),
     pass
@@ -133,20 +137,21 @@ class TransactionUploader:
         if self.is_complete:
             return
 
+
         chunk_ok = validate_path(
-            self.transaction.chunks.get('data_root'),
+            b64dec(self.transaction.chunks.get('data_root')),
             int(chunk.get('offset')),
             0,
             int(chunk.get('data_size')),
-            base64url_decode(chunk.get('data_path'))
+            base64url_decode(chunk.get('data_path').encode())
         )
 
         if not chunk_ok:
             raise TransactionUploaderException('Unable to validate chunk {}'.format(self.chunk_index))
 
         self.data = chunk['chunk']  # = self.get_chunk_data(self.chunk_index)
-        chunk['data_path'] = chunk['data_path'].decode()
-        chunk['chunk'] = chunk['chunk'].decode()
+        #chunk['data_path'] = chunk['data_path'].decode()
+        #chunk['chunk'] = chunk['chunk'].decode()
 
         url = '{}/chunk'.format(self.transaction.api_url)
 
@@ -267,7 +272,7 @@ def download_chunked_data(tx_id, file_handler=None):
         chunk_data = get_chunk_data(start_offset + byte_offset)
 
         if file_handler is None:
-            data[byte_offset:] = byte(chunk_data)
+            data[byte_offset:] = bytes(chunk_data)
         else:
             file_handler.seek(byte_offset)
             file_handler.write(chunk_data)
@@ -279,7 +284,7 @@ def from_serialized(self, file_handler, json_str):
 
     serialized = json.loads(json_str)
 
-    if type(serialized.chunk_index) != int or type(serialized.transaction) != object:
+    if not isinstance(serialized.chunk_index, int) or not isinstance(serialized.transaction, object):
         raise TransactionUploaderException('Serialized object does not match expected format')
 
     upload = TransactionUploader(
