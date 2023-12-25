@@ -6,10 +6,21 @@ import warnings
 from Crypto.Hash import SHA256
 from Crypto.Random import get_random_bytes
 
-from .utils import b64dec, b64enc, b64dec_if_not_bytes, b64enc_if_not_str, encode_tag, decode_tag, normalize_tag, create_tag, tags_to_dict
-from .utils.deep_hash import deep_hash
-from .utils.ans104_signers import DEFAULT as DEFAULT_SIGNER, BY_TYPE as SIGNERS_BY_TYPE
 from . import logger
+from .utils import (
+    b64dec,
+    b64dec_if_not_bytes,
+    b64enc,
+    b64enc_if_not_str,
+    create_tag,
+    decode_tag,
+    encode_tag,
+    normalize_tag,
+    tags_to_dict,
+)
+from .utils.ans104_signers import BY_TYPE as SIGNERS_BY_TYPE
+from .utils.ans104_signers import DEFAULT as DEFAULT_SIGNER
+from .utils.deep_hash import deep_hash
 
 ANS104_TAGS_AVRO_SCHEMA = {
   "type": "array",
@@ -330,7 +341,7 @@ class ANS104DataItemHeader:
                 if raw_tags_stream.tell() < raw_tags_len:
                     logger.warn('DataItem tags contains cruft data at end.')
                 else:
-                    raise Exception(f'incorrect tags length')
+                    raise Exception('incorrect tags length')
         else:
             raw_tags = b''
 

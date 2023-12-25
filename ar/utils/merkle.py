@@ -12,12 +12,11 @@
 # You should have received a copy of the GNU General Public License along with
 # PyArweave. If not, see <https://www.gnu.org/licenses/>.
 
-import hashlib
-import struct
 import functools
+import hashlib
+
+from . import b64enc, concat_buffers
 from .file_io import read_file_chunks
-from . import concat_buffers, b64enc, b64dec
-from json import JSONEncoder
 
 CHUNK_SIZE = 256 * 1024
 NOTE_SIZE = 32
@@ -242,7 +241,7 @@ def chunk_data(file_handler):
     :param file_handler:
     :return: chunks
     '''
-    chunks = [];
+    chunks = []
     chadd = chunks.append
 
     cursor = 0
@@ -300,7 +299,7 @@ def build_layers(nodes, level=0):
 
         return root
 
-    next_layer = [];
+    next_layer = []
     nadd = next_layer.append
 
     for i in range(0, nodes_lenth, 2):
@@ -343,7 +342,7 @@ def generate_transaction_chunks(file_handler):
 
 
 def flatten_tuple(inputs):
-    flat = [];
+    flat = []
     fadd = flat.append
 
     for item in inputs:
@@ -356,8 +355,8 @@ def flatten_tuple(inputs):
 
 
 def flatten_list(inputs):
-    flat = [];
-    fadd = flat.append;
+    flat = []
+    fadd = flat.append
     fexd = flat.extend
 
     for item in inputs:
@@ -446,7 +445,7 @@ def array_compare(a, b):
     functools.reduce(lambda x, y: x and y, map(lambda p, q: p == q, a, b), True)
 
 
-def validate_path(id_raw, dest, left_bound, right_bound, path):
+def validate_path(id_raw:bytes, dest:int, left_bound:int, right_bound:int, path: bytes):
     if right_bound < 0:
         return False
 

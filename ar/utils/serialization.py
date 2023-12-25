@@ -1,5 +1,7 @@
-from jose.utils import base64url_encode, base64url_decode, base64
+from jose.utils import base64url_decode, base64url_encode
+
 from .. import ArweaveException
+
 
 def b64dec(data):
     return base64url_decode(utf8enc_if_not_bytes(data))

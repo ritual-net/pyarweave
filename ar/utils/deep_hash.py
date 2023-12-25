@@ -13,10 +13,6 @@
 # PyArweave. If not, see <https://www.gnu.org/licenses/>.
 
 import hashlib
-from jose.utils import base64url_encode, base64url_decode, base64
-from Crypto.PublicKey import RSA
-from Crypto.Signature import PKCS1_PSS
-from Crypto.Hash import SHA384
 
 
 def deep_hash(data):
