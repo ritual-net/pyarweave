@@ -1,15 +1,22 @@
 
-from . import DEFAULT_API_URL, DEFAULT_REQUESTS_PER_MINUTE_LIMIT, logger, ArweaveException, ArweaveNetworkException
-from .stream import PeerStream, GatewayStream
-from .utils import b64dec, arbindec
-
 import io
+import json
 import threading
 import time
 
 import erlang
-import json
 import requests
+
+from . import (
+    DEFAULT_API_URL,
+    DEFAULT_REQUESTS_PER_MINUTE_LIMIT,
+    ArweaveException,
+    ArweaveNetworkException,
+    logger,
+)
+from .stream import GatewayStream, PeerStream
+from .utils import b64dec
+
 
 def binary_to_term(b):
     # arweave.live seems to replace nonascii chars with this sequence :/
@@ -74,7 +81,7 @@ class HTTPClient:
             return False
         if len(self.req_history) == 0:
             return False
-        return (time.time() - self.req_history[-1] < self.requests_per_period / period_sec) or self.ratelimited
+        return (time.time() - self.req_history[-1] < self.requests_per_period / self.period_sec) or self.ratelimited
 
     def _ratelimit_prologue(self):
         if self.requests_per_period is None:
@@ -150,7 +157,7 @@ class HTTPClient:
             try:
                 if not self.outgoing_connection_semaphore.acquire(blocking=False):
                     self.on_too_many_connections()
-                    logger.info(f'Waiting for connection count limit semaphore to drain...')
+                    logger.info('Waiting for connection count limit semaphore to drain...')
                     self.outgoing_connection_semaphore.acquire()
                 try:
                     response = self.session.request(**{'url': url, 'timeout': self.timeout, **request_kwparams})
@@ -390,7 +397,7 @@ class Peer(HTTPClient):
         response = self._get_json('queue')
         return response
 
-    def tx_status(self, hash):
+    def tx_status(self, txid):
         '''
         Return additional information about the transaction with the given identifier (hash).
 
@@ -1156,9 +1163,13 @@ class Peer(HTTPClient):
         response = self._get_json('cache', 'jobs')
         return response
 
-from ar.utils.merkle import compute_root_hash, generate_transaction_chunks
+import shutil
+import tempfile
+
 from ar.utils import b64enc
-import tempfile, shutil
+from ar.utils.merkle import generate_transaction_chunks
+
+
 def reupload_tx(peer, tx, range=None):
     stream = tempfile.SpooledTemporaryFile()
     with peer.gateway_stream(tx) as network_data:

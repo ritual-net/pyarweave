@@ -1,24 +1,30 @@
+import hashlib
+import io
 import json
 import os
-import io
-import hashlib
+
 from jose import jwk
-from .utils import (
-    winston_to_ar,
-    ar_to_winston,
-    create_tag,
-    encode_tag,
-    decode_tag,
-    b64enc, b64dec,
-    arbinenc, arbindec,
-    arintenc, arintdec,
-    utf8dec_if_bytes
-)
+
+from . import ArweaveException, logger
 from .peer import Peer
-from .wallet import Wallet
+from .utils import (
+    ar_to_winston,
+    arbindec,
+    arbinenc,
+    arintdec,
+    arintenc,
+    b64dec,
+    b64enc,
+    create_tag,
+    decode_tag,
+    encode_tag,
+    utf8dec_if_bytes,
+    winston_to_ar,
+)
 from .utils.deep_hash import deep_hash
 from .utils.merkle import compute_root_hash, generate_transaction_chunks
-from . import logger, ArweaveException
+from .wallet import Wallet
+
 
 class Transaction(object):
     def __init__(self, wallet, **kwargs):
@@ -313,14 +319,14 @@ class Transaction(object):
     def get_transaction(self):
         try:
             self.load(self.peer.tx(self.id))
-        except ArweaveException as exception:
+        except ArweaveException:
             pass
 
     def get_price(self):
         try:
             price = self.peer.price(self.data_size)
             return winston_to_ar(price)
-        except ArweaveException as exception:
+        except ArweaveException:
             pass
 
     def get_data(self):
