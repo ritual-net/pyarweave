@@ -1,7 +1,8 @@
-from Crypto.Util.number import bytes_to_long, long_to_bytes
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import pss
+from Crypto.Util.number import bytes_to_long, long_to_bytes
+
 
 class Signer:
     owner_length = None
@@ -14,7 +15,7 @@ class Signer:
         raise NotImplementedError(cls.__name__ + '.sign')
 
     @classmethod
-    def verify(public_key, raw_data, raw_signature):
+    def verify(cls, public_key, raw_data, raw_signature):
         raise NotImplementedError(cls.__name__ + '.verify')
 
     @classmethod
