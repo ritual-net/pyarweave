@@ -77,5 +77,5 @@ class Node(HTTPClient):
         return response.text
 
     def data(self, txid):
-        response = self._get('tx', tx_id, 'data')
+        response = self._get('tx', txid, 'data')
         return response.content
