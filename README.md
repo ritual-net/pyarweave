@@ -1,4 +1,12 @@
-# PyArweave
+# pyarweave
+
+This repository is a fork of the upstream [pyarweave](https://github.com/xloem/pyarweave) codebase with fixes and modifications from the [Ritual](https://ritual.net) team.
+
+> [!WARNING]
+> This library is being provided as is. No guarantee, representation or warranty is being made, express or implied, as to the safety or correctness of the functionality or additional modifications made.
+
+## Original `README` follows:
+
 This is a small python client for arweave, based on https://github.com/MikeHibbert/arweave-python-client .
 
 I can struggle to code, so the hope is to keep this small and simple and ask the universe for more developers to take over maintainership.
