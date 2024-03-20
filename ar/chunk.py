@@ -1,7 +1,8 @@
 import io
 
-from .utils import arbinenc, arbindec, b64enc, b64dec
+from .utils import arbindec, arbinenc, b64dec, b64enc
 from .utils.merkle import Node as MerkleNode
+
 
 class Chunk:
     def __init__(self, data = None, data_path = None, tx_path = None, packing = 'unpacked'):

@@ -1,4 +1,7 @@
-import io, ar
+import io
+
+import ar
+
 
 class PeerStream(io.RawIOBase):
     @classmethod

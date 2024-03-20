@@ -105,7 +105,7 @@ class ANS104BundleHeader:
     @classmethod
     def frombytes(cls, data):
         stream = io.BytesIO(data)
-        return self.fromstream(stream)
+        return cls.fromstream(stream)
 
     @classmethod
     def fromstream(cls, stream):
@@ -161,7 +161,7 @@ class ANS104DataItemHeader:
         return self.raw_owner
 
     @property
-    def public_key(Self):
+    def public_key(self):
         return self.owner
 
     @property

@@ -1,15 +1,17 @@
 import json
-from jose import jwk
-from jose.utils import base64url_decode
+
+from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_PSS
-from Crypto.Hash import SHA256
-from .utils import (
-    winston_to_ar,
-    owner_to_address,
-)
+from jose import jwk
+from jose.utils import base64url_decode
+
 from . import DEFAULT_API_URL
 from .peer import Peer
+from .utils import (
+    owner_to_address,
+    winston_to_ar,
+)
 
 
 class Wallet(object):

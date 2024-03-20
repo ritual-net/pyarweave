@@ -1,12 +1,11 @@
 import fractions
 import io
-from ar.utils import (
-    arbinenc, arintenc, arbindec, arintdec, b64enc_if_not_str, b64enc, b64dec
-)
+
+from ar.utils import arbindec, arbinenc, arintdec, arintenc, b64dec, b64enc_if_not_str
 from ar.utils.deep_hash import deep_hash
-from .chunk import Chunk
+
+from . import FORK_2_4, FORK_2_5
 from .transaction import Transaction
-from . import FORK_2_4
 
 # note: there are actually three different block formats in chain history,
 # according to https://docs.arweave.org/developers/server/http-api#block-format

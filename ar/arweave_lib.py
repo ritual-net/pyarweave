@@ -12,10 +12,9 @@
 # You should have received a copy of the GNU General Public License along with
 # PyArweave. If not, see <https://www.gnu.org/licenses/>.
 
-import json
-from .peer import Peer
-
 from . import DEFAULT_API_URL
+from .peer import Peer
+from .transaction import Transaction
 
 TRANSACTION_DATA_LIMIT_IN_BYTES = 2000000
 
