@@ -27,7 +27,7 @@ from .wallet import Wallet
 
 
 class Transaction(object):
-    def __init__(self, wallet, **kwargs):
+    def __init__(self, wallet, peer=None, **kwargs):
         self.jwk_data = wallet.jwk_data
         self.jwk = jwk.construct(self.jwk_data, algorithm='RS256')
         self.wallet = wallet
@@ -38,7 +38,7 @@ class Transaction(object):
         self.tags = []
         self.format = kwargs.get('format', 2)
 
-        self.peer = Peer()
+        self.peer = peer or Peer()
         self.chunks = None
 
         data = kwargs.get('data', '')
@@ -267,7 +267,7 @@ class Transaction(object):
         return signature_data
 
     def send(self):
-        return self.peer.send_tx(self.json_data)
+        return self.peer.send_tx(self.to_dict())
 
     def to_dict(self):
 

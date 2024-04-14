@@ -17,7 +17,7 @@ from .utils import (
 class Wallet(object):
     HASH = 'sha256'
 
-    def __init__(self, jwk_file='jwk_file.json', jwk_data=None):
+    def __init__(self, jwk_file='jwk_file.json', api_url=DEFAULT_API_URL, jwk_data=None):
         if jwk_data is not None:
             self.jwk_data = jwk_data
         else:
@@ -31,7 +31,7 @@ class Wallet(object):
         self.owner = self.jwk_data.get('n')
         self.address = owner_to_address(self.owner)
 
-        self.peer = Peer(DEFAULT_API_URL)
+        self.peer = Peer(api_url)
 
     @classmethod
     def generate(cls, bits = 4096, jwk_file = None):

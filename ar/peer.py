@@ -39,16 +39,25 @@ class HTTPClient:
         self.extra_headers = extra_headers
         self.req_history = []
         max_retries = requests.adapters.Retry(total=retries, backoff_factor=0.1, status_forcelist=[500,502,503,504]) # from so
-        adapter = self._FingerprintAdapter(
+        https_adapter = self._FingerprintAdapter(
             fingerprint = cert_fingerprint,
             pool_connections = outgoing_connections,
             pool_maxsize = outgoing_connections,
             max_retries = max_retries,
             pool_block = True,
         )
-        self.session.mount('http://', adapter)
-        self.session.mount('https://', adapter)
+
+        http_adapter = requests.adapters.HTTPAdapter(
+            pool_connections=outgoing_connections,
+            pool_maxsize=outgoing_connections,
+            max_retries=max_retries,
+            pool_block=True,
+        )
+        self.session.mount("http://", http_adapter)
+        self.session.mount("https://", https_adapter)
+
         self.timeout = timeout
+
     def __del__(self):
         self.session.close()
     class _FingerprintAdapter(requests.adapters.HTTPAdapter):
