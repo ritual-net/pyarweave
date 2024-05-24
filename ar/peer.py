@@ -202,7 +202,7 @@ class HTTPClient:
                         status_code = 598
                     logger.info('{}\n{}\n\n{}'.format(exc, text, request_kwparams))
                 else:
-                    logger.error('{}\n{}\n\n{}'.format(exc, text, request_kwparams))
+                    pass
                 if status_code == 520:
                     # cloudfront broke
                     self._ratelimit_epilogue(True)

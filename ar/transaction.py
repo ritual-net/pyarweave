@@ -24,68 +24,72 @@ from .utils import (
 from .utils.deep_hash import deep_hash
 from .utils.merkle import compute_root_hash, generate_transaction_chunks
 from .wallet import Wallet
+from typing import Dict
 
 
 class Transaction(object):
     def __init__(self, wallet, peer=None, **kwargs):
         self.jwk_data = wallet.jwk_data
-        self.jwk = jwk.construct(self.jwk_data, algorithm='RS256')
+        self.jwk = jwk.construct(self.jwk_data, algorithm="RS256")
         self.wallet = wallet
 
-        self.id = kwargs.get('id', '')
+        self.id = kwargs.get("id", "")
         self.last_tx = wallet.get_last_transaction_id()
-        self.owner = self.jwk_data.get('n')
+        self.owner = self.jwk_data.get("n")
         self.tags = []
-        self.format = kwargs.get('format', 2)
+        self.format = kwargs.get("format", 2)
 
         self.peer = peer or Peer()
         self.chunks = None
 
-        data = kwargs.get('data', '')
+        data = kwargs.get("data", "")
         self.data_size = len(data)
 
         if type(data) is bytes:
             self.data = b64enc(data)
         else:
-            self.data = b64enc(data.encode('utf-8'))
+            self.data = b64enc(data.encode("utf-8"))
 
         if self.data is None:
-            self.data = ''
+            self.data = ""
 
-        self.file_handler = kwargs.get('file_handler', None)
+        self.file_handler = kwargs.get("file_handler", None)
         if self.file_handler:
             self.uses_uploader = True
-            self.data_size = os.stat(kwargs['file_path']).st_size
+            self.data_size = os.stat(kwargs["file_path"]).st_size
         else:
             self.uses_uploader = False
 
-        if kwargs.get('transaction'):
-            self.from_serialized_transaction(kwargs.get('transaction'))
+        if kwargs.get("transaction"):
+            self.from_serialized_transaction(kwargs.get("transaction"))
         else:
-            self.data_root = ''
+            self.data_root = ""
 
             self.data_tree = []
 
-            self.target = kwargs.get('target', '')
-            self.to = kwargs.get('to', '')
+            self.target = kwargs.get("target", "")
+            self.to = kwargs.get("to", "")
 
-            if self.target == '' and self.to != '':
+            if self.target == "" and self.to != "":
                 self.target = self.to
 
-            self.quantity = kwargs.get('quantity', '0')
+            self.quantity = kwargs.get("quantity", "0")
             if float(self.quantity) > 0:
-                if self.target == '':
+                if self.target == "":
                     raise ArweaveException(
-                        'Unable to send {} AR without specifying a target address'.format(self.quantity))
+                        "Unable to send {} AR without specifying a target address".format(
+                            self.quantity
+                        )
+                    )
 
                 # convert to winston
                 self.quantity = ar_to_winston(float(self.quantity))
 
-            reward = kwargs.get('reward', None)
+            reward = kwargs.get("reward", None)
             if reward is not None:
                 self.reward = reward
 
-            self.signature = ''
+            self.signature = ""
             self.status = None
 
     @classmethod
@@ -113,12 +117,12 @@ class Transaction(object):
         reward = arintdec(stream, 8)
         data_raw = arbindec(stream, 24)
 
-        tags_count = int.from_bytes(stream.read(2), 'big')
+        tags_count = int.from_bytes(stream.read(2), "big")
 
         tags = []
         for tag_idx in range(tags_count):
-            name_size = int.from_bytes(stream.read(2), 'big')
-            value_size = int.from_bytes(stream.read(2), 'big')
+            name_size = int.from_bytes(stream.read(2), "big")
+            value_size = int.from_bytes(stream.read(2), "big")
             name = stream.read(name_size)
             value = stream.read(value_size)
             tag = create_tag(name, value, format == 2)
@@ -126,23 +130,17 @@ class Transaction(object):
 
         assert stream.tell() == len(bintx)
 
-        wallet = Wallet(
-            jwk_data = {
-                'kty': 'RSA',
-                'e': 'AQAB',
-                'n': b64enc(owner_raw)
-            }
-        )
+        wallet = Wallet(jwk_data={"kty": "RSA", "e": "AQAB", "n": b64enc(owner_raw)})
         wallet.get_last_transaction_id = lambda: b64enc(last_tx_raw)
 
         tx = cls(
-            format = format,
-            id = b64enc(id_raw),
-            wallet = wallet,
-            target = b64enc(target_raw),
-            quantity = winston_to_ar(quantity),
-            reward = str(reward),
-            data = data_raw,
+            format=format,
+            id=b64enc(id_raw),
+            wallet=wallet,
+            target=b64enc(target_raw),
+            quantity=winston_to_ar(quantity),
+            reward=str(reward),
+            data=data_raw,
         )
         tx.data_size = data_size
         tx.data_root = b64enc(data_root_raw)
@@ -151,32 +149,41 @@ class Transaction(object):
         return tx
 
     def tobytes(self):
-        return arbinenc(b''.join((
-            bytes([self.format]),
-            b64dec(self.id),
-            arbinenc(b64dec(self.last_tx), 8),
-            arbinenc(b64dec(self.owner), 16),
-            arbinenc(b64dec(self.target), 8),
-            arintenc(int(self.quantity), 8),
-            arintenc(self.data_size, 16),
-            arbinenc(b64dec(self.data_root), 8),
-            arbinenc(b64dec(self.signature), 16),
-            arintenc(int(self.reward), 8),
-            arbinenc(b64dec(self.data), 24),
-            
-            len(self.tags).to_bytes(2, 'big'),
-            *(b''.join((
-                len(tag['name']).to_bytes(2, 'big'),
-                len(tag['value']).to_bytes(2, 'big'),
-                tag['name'],
-                tag['value']
-            )) for tag in self.tags)
-        )), 24)
+        return arbinenc(
+            b"".join(
+                (
+                    bytes([self.format]),
+                    b64dec(self.id),
+                    arbinenc(b64dec(self.last_tx), 8),
+                    arbinenc(b64dec(self.owner), 16),
+                    arbinenc(b64dec(self.target), 8),
+                    arintenc(int(self.quantity), 8),
+                    arintenc(self.data_size, 16),
+                    arbinenc(b64dec(self.data_root), 8),
+                    arbinenc(b64dec(self.signature), 16),
+                    arintenc(int(self.reward), 8),
+                    arbinenc(b64dec(self.data), 24),
+                    len(self.tags).to_bytes(2, "big"),
+                    *(
+                        b"".join(
+                            (
+                                len(tag["name"]).to_bytes(2, "big"),
+                                len(tag["value"]).to_bytes(2, "big"),
+                                tag["name"],
+                                tag["value"],
+                            )
+                        )
+                        for tag in self.tags
+                    ),
+                )
+            ),
+            24,
+        )
 
     @property
     def api_url(self):
         return self.peer.api_url
-    
+
     @api_url.setter
     def api_url(self, api_url):
         self.peer.api_url = api_url
@@ -188,11 +195,16 @@ class Transaction(object):
             self.load(transaction_json)
         else:
             raise ArweaveException(
-                'Please supply a string or dict containing json to initialize a serialized transaction')
+                "Please supply a string or dict containing json to initialize a serialized transaction"
+            )
 
     def get_reward(self, data_size, target_address=None):
         reward = self.peer.price(data_size, target_address)
         return str(reward)
+
+    def add_tags(self, tags: Dict[str, str]):
+        for name, value in tags.items():
+            self.add_tag(name, value)
 
     def add_tag(self, name, value):
         tag = create_tag(name, value, self.format == 2)
@@ -218,11 +230,15 @@ class Transaction(object):
             self.id = self.id.decode()
 
     def get_signature_data(self):
-        self.reward = self.get_reward(self.data_size, target_address=self.target if len(self.target) > 0 else None)
+        self.reward = self.get_reward(
+            self.data_size, target_address=self.target if len(self.target) > 0 else None
+        )
 
-        if int(self.data_size) > 0 and self.data_root == '' and not self.uses_uploader:
+        if int(self.data_size) > 0 and self.data_root == "" and not self.uses_uploader:
             if type(self.data) == str:
-                root_hash = compute_root_hash(io.BytesIO(b64dec(self.data.encode('utf-8'))))
+                root_hash = compute_root_hash(
+                    io.BytesIO(b64dec(self.data.encode("utf-8")))
+                )
 
             if type(self.data) == bytes:
                 root_hash = compute_root_hash(io.BytesIO(b64dec(self.data)))
@@ -230,37 +246,40 @@ class Transaction(object):
             self.data_root = b64enc(root_hash)
 
         if self.format == 1:
-            tag_str = ''
+            tag_str = ""
 
             for tag in self.tags:
                 name, value = decode_tag(tag)
-                tag_str += '{}{}'.format(name.decode(), value.decode())
+                tag_str += "{}{}".format(name.decode(), value.decode())
 
-            owner = b64dec(self.jwk_data['n'].encode())
+            owner = b64dec(self.jwk_data["n"].encode())
             target = b64dec(self.target)
             data = b64dec(self.data)
             quantity = self.quantity.encode()
             reward = self.reward.encode()
             last_tx = b64dec(self.last_tx.encode())
 
-            signature_data = owner + target + data + quantity + reward + last_tx + tag_str.encode()
+            signature_data = (
+                owner + target + data + quantity + reward + last_tx + tag_str.encode()
+            )
 
         if self.format == 2:
             if self.uses_uploader:
                 self.prepare_chunks()
 
-            tag_list = [[tag['name'], tag['value']] for tag in self.tags]
+            tag_list = [[tag["name"], tag["value"]] for tag in self.tags]
 
             signature_data_list = [
-                '2'.encode(),
-                b64dec(self.jwk_data['n'].encode()),
+                "2".encode(),
+                b64dec(self.jwk_data["n"].encode()),
                 b64dec(self.target.encode()),
                 str(self.quantity).encode(),
                 self.reward.encode(),
                 b64dec(self.last_tx.encode()),
                 tag_list,
                 str(self.data_size).encode(),
-                b64dec(self.data_root)]
+                b64dec(self.data_root),
+            ]
 
             signature_data = deep_hash(signature_data_list)
 
@@ -270,32 +289,31 @@ class Transaction(object):
         return self.peer.send_tx(self.to_dict())
 
     def to_dict(self):
-
         if self.data is None:
-            self.data = ''
+            self.data = ""
 
         data = {
-            'data': utf8dec_if_bytes(self.data),
-            'id': utf8dec_if_bytes(self.id),
-            'last_tx': self.last_tx,
-            'owner': self.owner,
-            'quantity': self.quantity,
-            'reward': self.reward,
-            'signature': utf8dec_if_bytes(self.signature),
-            'tags': self.tags,
-            'target': self.target
+            "data": utf8dec_if_bytes(self.data),
+            "id": utf8dec_if_bytes(self.id),
+            "last_tx": self.last_tx,
+            "owner": self.owner,
+            "quantity": self.quantity,
+            "reward": self.reward,
+            "signature": utf8dec_if_bytes(self.signature),
+            "tags": self.tags,
+            "target": self.target,
         }
 
         if self.format == 2:
             self.encode_tags()
-            data['tags'] = self.tags
-            data['format'] = 2
+            data["tags"] = self.tags
+            data["format"] = 2
             if len(self.data_root) > 0:
-                data['data_root'] = utf8dec_if_bytes(self.data_root)
+                data["data_root"] = utf8dec_if_bytes(self.data_root)
             else:
-                data['data_root'] = ''
-            data['data_size'] = str(self.data_size)
-            data['data_tree'] = []
+                data["data_root"] = ""
+            data["data_size"] = str(self.data_size)
+            data["data_tree"] = []
 
         return data
 
@@ -307,13 +325,13 @@ class Transaction(object):
 
         logger.debug(json_str)
 
-        return json_str.replace(' ', '')
+        return json_str.replace(" ", "")
 
     def get_status(self):
         try:
             self.status = self.peer.tx_status(self.id)
         except ArweaveException:
-            self.status = 'PENDING'
+            self.status = "PENDING"
         return self.status
 
     def get_transaction(self):
@@ -334,49 +352,45 @@ class Transaction(object):
         return self.data
 
     def load(self, json_data):
-        self.data = json_data.get('data', '')
-        self.last_tx = json_data.get('last_tx', '')
-        self.owner = json_data.get('owner', '')
-        self.quantity = json_data.get('quantity', '')
-        self.reward = json_data.get('reward', '')
-        self.signature = json_data.get('signature', '')
-        self.tags = [decode_tag(tag) for tag in json_data.get('tags', [])]
-        self.target = json_data.get('target', '')
-        self.data_size = int(json_data.get('data_size', '0'))
-        self.data_root = json_data.get('data_root', '')
-        self.data_tree = json_data.get('data_tree', [])
+        self.data = json_data.get("data", "")
+        self.last_tx = json_data.get("last_tx", "")
+        self.owner = json_data.get("owner", "")
+        self.quantity = json_data.get("quantity", "")
+        self.reward = json_data.get("reward", "")
+        self.signature = json_data.get("signature", "")
+        self.tags = [decode_tag(tag) for tag in json_data.get("tags", [])]
+        self.target = json_data.get("target", "")
+        self.data_size = int(json_data.get("data_size", "0"))
+        self.data_root = json_data.get("data_root", "")
+        self.data_tree = json_data.get("data_tree", [])
 
         logger.debug(json_data)
 
     def prepare_chunks(self):
         if not self.chunks:
             self.chunks = generate_transaction_chunks(self.file_handler)
-            self.data_root = self.chunks.get('data_root')
+            self.data_root = self.chunks.get("data_root")
 
         if not self.chunks:
-            self.chunks = {
-                'chunks': [],
-                'data_root': b'',
-                'proof': []
-            }
+            self.chunks = {"chunks": [], "data_root": b"", "proof": []}
 
-            self.data_root = ''
+            self.data_root = ""
 
     def get_chunk(self, idx):
         if self.chunks is None:
-            raise ArweaveException('Chunks have not been prepared')
+            raise ArweaveException("Chunks have not been prepared")
 
-        proof = self.chunks.get('proofs')[idx]
-        chunk = self.chunks.get('chunks')[idx]
+        proof = self.chunks.get("proofs")[idx]
+        chunk = self.chunks.get("chunks")[idx]
 
         self.file_handler.seek(chunk.min_byte_range)
 
         chunk_data = self.file_handler.read(chunk.data_size)
 
         return {
-            'data_root': self.data_root,
-            'data_size': str(self.data_size),
-            'data_path': b64enc(proof.proof),
-            'offset': str(proof.offset),
-            'chunk': b64enc(chunk_data)
+            "data_root": self.data_root,
+            "data_size": str(self.data_size),
+            "data_path": b64enc(proof.proof),
+            "offset": str(proof.offset),
+            "chunk": b64enc(chunk_data),
         }
