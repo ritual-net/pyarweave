@@ -243,7 +243,10 @@ class TransactionUploader:
                     "{}\n\n{}".format(response.text, self.transaction.json_data)
                 )
 
-                self.last_response_error = json.loads(response.text)
+                try:
+                    self.last_response_error = json.loads(response.text)
+                except Exception:
+                    self.last_response_error = response.text
 
                 raise TransactionUploaderException(
                     "Unable to upload transaction {}, {}".format(
