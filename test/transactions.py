@@ -47,7 +47,7 @@ def run_test(jwk_file, tests=[1,2,3]):
 
             uploader = get_uploader(tx, file_handler)
             while not uploader.is_complete:
-                uploader.upload_chunk()
+                uploader.upload_section()
                 logger.info('{}% complete, {}/{}'.format(
                     uploader.pct_complete, uploader.uploaded_chunks, uploader.total_chunks
                 ))
@@ -73,7 +73,7 @@ def run_test(jwk_file, tests=[1,2,3]):
 
             uploader = get_uploader(tx, fp)
             while not uploader.is_complete:
-                uploader.upload_chunk()
+                uploader.upload_section()
                 logger.info('{}% complete, {}/{}'.format(
                     uploader.pct_complete, uploader.uploaded_chunks, uploader.total_chunks
                 ))

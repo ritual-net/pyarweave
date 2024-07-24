@@ -250,6 +250,7 @@ class HTTPClient:
             raise ArweaveException(response.text)
 
     def on_network_exception(self, text, code, exception, response):
+        text = f"{self.api_url} - {text}"
         raise ArweaveNetworkException(text, code, exception, response)
 
     def on_too_many_connections(self):
