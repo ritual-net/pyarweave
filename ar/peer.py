@@ -987,15 +987,19 @@ class Peer(HTTPClient):
             'data_root' | 'data_size' | 'data' | 'reward' | 'signature'
         }
         '''
-        if field == 'data':
-            response = self._get('tx', hash, 'data.')
-            return response.content
-        else:
-            response = self._get_json('tx', hash, field)
-            for tag in response:
-                for key in tag:
-                    tag[key] = b64dec(tag[key].encode())
-            return response
+        match field:
+            case 'data':
+                response = self._get('tx', hash, 'data.')
+                return response.content
+            case 'data_size':
+                response = self._get_json('tx', hash, 'data_size')
+                return response
+            case _:
+                response = self._get_json('tx', hash, field)
+                for tag in response:
+                    for key in tag:
+                        tag[key] = b64dec(tag[key].encode())
+                return response
 
     def tx_id(self, hash):
         '''Return transaction id.'''
