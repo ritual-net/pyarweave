@@ -67,8 +67,8 @@ class TransactionUploader:
         self.last_response_error = kwargs.get("last_response_error", "")
         self.transaction.data = b""  # zero out data for serialization
         self.file_handler = kwargs["file_handler"]
-        self.task_id = kwargs["task_id"]
-        self.progress = kwargs["progress"]
+        self.task_id = kwargs.get("task_id")
+        self.progress = kwargs.get("progress", lambda x: None)
         self.total_errors = 0
         self.data = None
 
